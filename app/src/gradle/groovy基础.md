@@ -204,4 +204,4 @@ method1 in delegate
 - owner 与delegate 在默认的情况下是一样的，delegate是可以被修改的，优先级上来说 thisObject>owner>delegate
 
 
-
+[查看Demo](https://github.com/susiha/AndroidDecompose/blob/master/app/src/gradle/groovy/build.gradle)
