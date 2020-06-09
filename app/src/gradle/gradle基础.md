@@ -110,5 +110,5 @@ task customExtPro{
 }
 ```
 
-[示例代码]()
+[示例代码](https://github.com/susiha/AndroidDecompose/blob/master/app/src/gradle/groovy/gradleBasics.groovy)
 
