@@ -332,7 +332,7 @@ task typeTask11(dependsOn:taskMiss){
 这样我们在执行上面的代码时 虽然找不到相应的task,但是并没有报错，而是只打印的了错误信息
 
 
-
+[示例代码](https://github.com/susiha/AndroidDecompose/blob/master/app/src/gradle/groovy/gradleTasks.groovy)
 
 
 
