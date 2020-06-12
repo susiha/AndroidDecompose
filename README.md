@@ -7,4 +7,7 @@
  - [Android Gradle插件](https://github.com/susiha/AndroidDecompose/blob/master/app/src/gradle/Android%20Gradle%E6%8F%92%E4%BB%B6.md)
  - [Android Gradle构建](https://github.com/susiha/AndroidDecompose/blob/master/app/src/gradle/Android%20Gradle%E6%9E%84%E5%BB%BA.md)
  - [Android Gradle 测试](https://github.com/susiha/AndroidDecompose/blob/master/app/src/gradle/Android%20Gradle%20%E6%B5%8B%E8%AF%95.md)
+ 
+ [Android Gradle Demo](https://github.com/susiha/GradlePlugin)
+ 
  ### 设计模式
