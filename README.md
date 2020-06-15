@@ -11,5 +11,5 @@
  [Android Gradle Demo](https://github.com/susiha/GradlePlugin)
  
  ### 设计模式
- - [迭代器模式]()
+ - [迭代器模式](https://github.com/susiha/AndroidDecompose/blob/master/app/src/designpattern/%E8%BF%AD%E4%BB%A3%E5%99%A8%E6%A8%A1%E5%BC%8F.md)
 
