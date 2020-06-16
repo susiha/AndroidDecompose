@@ -12,5 +12,5 @@
  
  ### 设计模式
  - [迭代器模式](https://github.com/susiha/AndroidDecompose/blob/master/app/src/designpattern/%E8%BF%AD%E4%BB%A3%E5%99%A8%E6%A8%A1%E5%BC%8F.md)
- -[适配器模式](https://github.com/susiha/AndroidDecompose/blob/master/app/src/designpattern/%E9%80%82%E9%85%8D%E5%99%A8%E6%A8%A1%E5%BC%8F.md)
+ - [适配器模式](https://github.com/susiha/AndroidDecompose/blob/master/app/src/designpattern/%E9%80%82%E9%85%8D%E5%99%A8%E6%A8%A1%E5%BC%8F.md)
 
