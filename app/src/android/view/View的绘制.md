@@ -95,6 +95,17 @@ generateDecor 就是创建一个新的DecorView,
 ```
 这个方法就是把根据Window属性把对应的布局添加到DecorView上，这样mContentParent就添加到DecorView，上了，再加上自定义的View 添加到DecorView上，这样自定义的View 就添加到窗口上了
 
+### View的绘制
+#### 基本流程
+- 在ActivityThread的handleResumeActivity方法中 会有此语句  wm.addView(decor, l);其中这个wm就是windowManager， 而windowManagerImpl是windowManager的实现类，因此，这个方法最终的调用时在WindowManagerImpl的addView(View,LayoutParams)上，
+- 而WindowManagerImpl的addView方法又调用了WindowManagerGlobal的add方法
+- 在WindowManagerGlobal的addView方法中，首先初始化了ViewRootImpl，然后调用了ViewRootImpl的setView方法
+- 从ViewRootimpl的setView开始 调用的顺序 ->requestLayout()->scheduleTraversals（）->doTraversal()->performTraversals()
+- 在performTraversals()方法中依次调用了performMeasure（）测量，performLayout（）摆放，performDraw（）绘制
+#### performMeasure测量
+android 中各个控件在控制之前首先需要知道各个控件的大小，它的测量是从最顶端的View 也就是decorView开始测量的，通过递归其各个子控件从而完成View的测量，在测量的时候借助的是MeasureSpec这个工具类的，了解MeasureSpec能够更好地理解View的测量方法
+##### MeasureSpec
+MeasureSpec 使用32位的二进制数来表示，其中高两位表示SpecMode,低3O位表示SpecSize
 
 
 
