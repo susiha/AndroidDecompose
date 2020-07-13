@@ -105,7 +105,173 @@ generateDecor 就是创建一个新的DecorView,
 #### performMeasure测量
 android 中各个控件在控制之前首先需要知道各个控件的大小，它的测量是从最顶端的View 也就是decorView开始测量的，通过递归其各个子控件从而完成View的测量，在测量的时候借助的是MeasureSpec这个工具类的，了解MeasureSpec能够更好地理解View的测量方法
 ##### MeasureSpec
-MeasureSpec 使用32位的二进制数来表示，其中高两位表示SpecMode,低3O位表示SpecSize
+MeasureSpec 使用32位的二进制数来表示，其中高两位表示SpecMode,低30位表示SpecSize
+因此MeasureSpec使用0<<30，1<<30,2<<30表示三种测量模式，这表示高两位分别是00，01，10代表各自的测量模式
+其中00表示UNSPECIFIED
+01表示EXACTLY准确的
+10 表示AT_MOST最多
+而后30位表示的是测量的大小，通过MeassureSpec可以同时表示两个变量(测量模式，测量大小)
+
+##### performMeasure流程
+了解完MeasureSpec之后，看一下具体的测量流程，从performMeasure开始
+```
+ private void performMeasure(int childWidthMeasureSpec, int childHeightMeasureSpec) {
+        try {
+            mView.measure(childWidthMeasureSpec, childHeightMeasureSpec);
+        } finally {
+        }
+    }
+```
+直接调用的是mView的measure方法，首先先看看childWidthMeasureSpec 和childHeightMeasureSpec是怎么得到的
+```
+    int childWidthMeasureSpec = getRootMeasureSpec(mWidth, lp.width);
+    int childHeightMeasureSpec = getRootMeasureSpec(mHeight, lp.height);
+```
+进入大getRootMeasureSpec方法中，其中mWidth和mHeight事window的宽高，lp.width和lp.height是初始布局的layout_width和layout_height
+```
+  private static int getRootMeasureSpec(int windowSize, int rootDimension) {
+        int measureSpec;
+        switch (rootDimension) {
+
+        case ViewGroup.LayoutParams.MATCH_PARENT:
+            // Window can't resize. Force root view to be windowSize.
+            measureSpec = MeasureSpec.makeMeasureSpec(windowSize, MeasureSpec.EXACTLY);
+            break;
+        case ViewGroup.LayoutParams.WRAP_CONTENT:
+            // Window can resize. Set max size for root view.
+            measureSpec = MeasureSpec.makeMeasureSpec(windowSize, MeasureSpec.AT_MOST);
+            break;
+        default:
+            // Window wants to be an exact size. Force root view to be that size.
+            measureSpec = MeasureSpec.makeMeasureSpec(rootDimension, MeasureSpec.EXACTLY);
+            break;
+        }
+        return measureSpec;
+    }
+```
+可以看到对于MATCH_PARENT来说 mode就是Exactly size就是windowSize 对于WRAP_CONTENT来说 mode就是AT_MOST,size就是windowSize,这样window的measureSpec就测量好了，接着看decorView的测量,接下来走进入的是mView的measure方法
+```
+ public final void measure(int widthMeasureSpec, int heightMeasureSpec) {
+    onMeasure(widthMeasureSpec, heightMeasureSpec);
+ }
+```
+因为measure方法是不能被重写的，因此所有的View都会通过调用measure方法，然后调用到onMeasure方法
+
+```
+  protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        setMeasuredDimension(getDefaultSize(getSuggestedMinimumWidth(), widthMeasureSpec),
+                getDefaultSize(getSuggestedMinimumHeight(), heightMeasureSpec));
+    }
+
+```
+onMeasure方法是个可以被重写的方法，不同的View会有不同的测量逻辑，但是如果重写onMeasure方法必须调用setMeasuredDimension方法来保存view的宽高，因为decorView是FrameLayout，我们看看它的onMeasure是如何实现的
+```
+protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int count = getChildCount(); //获取子View的个数
+
+        final boolean measureMatchParentChildren =
+                MeasureSpec.getMode(widthMeasureSpec) != MeasureSpec.EXACTLY ||
+                MeasureSpec.getMode(heightMeasureSpec) != MeasureSpec.EXACTLY;
+        mMatchParentChildren.clear();
+
+        int maxHeight = 0;
+        int maxWidth = 0;
+        int childState = 0;
+
+        for (int i = 0; i < count; i++) {
+            final View child = getChildAt(i);
+            if (mMeasureAllChildren || child.getVisibility() != GONE) {
+                measureChildWithMargins(child, widthMeasureSpec, 0, heightMeasureSpec, 0);
+                final LayoutParams lp = (LayoutParams) child.getLayoutParams();
+                maxWidth = Math.max(maxWidth,
+                        child.getMeasuredWidth() + lp.leftMargin + lp.rightMargin);
+                maxHeight = Math.max(maxHeight,
+                        child.getMeasuredHeight() + lp.topMargin + lp.bottomMargin);
+                childState = combineMeasuredStates(childState, child.getMeasuredState());
+                if (measureMatchParentChildren) {
+                    if (lp.width == LayoutParams.MATCH_PARENT ||
+                            lp.height == LayoutParams.MATCH_PARENT) {
+                        mMatchParentChildren.add(child);
+                    }
+                }
+            }
+        }
+
+        // Account for padding too
+        maxWidth += getPaddingLeftWithForeground() + getPaddingRightWithForeground();
+        maxHeight += getPaddingTopWithForeground() + getPaddingBottomWithForeground();
+
+        // Check against our minimum height and width
+        maxHeight = Math.max(maxHeight, getSuggestedMinimumHeight());
+        maxWidth = Math.max(maxWidth, getSuggestedMinimumWidth());
+
+        // Check against our foreground's minimum height and width
+        final Drawable drawable = getForeground();
+        if (drawable != null) {
+            maxHeight = Math.max(maxHeight, drawable.getMinimumHeight());
+            maxWidth = Math.max(maxWidth, drawable.getMinimumWidth());
+        }
+
+        setMeasuredDimension(resolveSizeAndState(maxWidth, widthMeasureSpec, childState),
+                resolveSizeAndState(maxHeight, heightMeasureSpec,
+                        childState << MEASURED_HEIGHT_STATE_SHIFT));
+
+        count = mMatchParentChildren.size();
+        if (count > 1) {
+            for (int i = 0; i < count; i++) {
+                final View child = mMatchParentChildren.get(i);
+                final MarginLayoutParams lp = (MarginLayoutParams) child.getLayoutParams();
+
+                final int childWidthMeasureSpec;
+                if (lp.width == LayoutParams.MATCH_PARENT) {
+                    final int width = Math.max(0, getMeasuredWidth()
+                            - getPaddingLeftWithForeground() - getPaddingRightWithForeground()
+                            - lp.leftMargin - lp.rightMargin);
+                    childWidthMeasureSpec = MeasureSpec.makeMeasureSpec(
+                            width, MeasureSpec.EXACTLY);
+                } else {
+                    childWidthMeasureSpec = getChildMeasureSpec(widthMeasureSpec,
+                            getPaddingLeftWithForeground() + getPaddingRightWithForeground() +
+                            lp.leftMargin + lp.rightMargin,
+                            lp.width);
+                }
+
+                final int childHeightMeasureSpec;
+                if (lp.height == LayoutParams.MATCH_PARENT) {
+                    final int height = Math.max(0, getMeasuredHeight()
+                            - getPaddingTopWithForeground() - getPaddingBottomWithForeground()
+                            - lp.topMargin - lp.bottomMargin);
+                    childHeightMeasureSpec = MeasureSpec.makeMeasureSpec(
+                            height, MeasureSpec.EXACTLY);
+                } else {
+                    childHeightMeasureSpec = getChildMeasureSpec(heightMeasureSpec,
+                            getPaddingTopWithForeground() + getPaddingBottomWithForeground() +
+                            lp.topMargin + lp.bottomMargin,
+                            lp.height);
+                }
+
+                child.measure(childWidthMeasureSpec, childHeightMeasureSpec);
+            }
+        }
+    }
+```
+
+这个代码的中心思想就是首先
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
