@@ -352,6 +352,33 @@ public static int getChildMeasureSpec(int spec, int padding, int childDimension)
 ```
 然后计算出子控件的measureSpec,然后在进行子控件的measure
 
+measure总结
+- 如果自定义View 复写onMeasure方法，一定要调用setMeasuredDimension方法
+- 如果是自定义ViewGroup 复写onMeasure方法 要测量子View 然后再setMeasuredDimension
+
+
+##### performLayout流程
+确定了View的大小，就需要确定View的位置了，从performLayout开始就是确定View的摆放位置
+
+```
+private void performLayout(WindowManager.LayoutParams lp, int desiredWindowWidth,
+            int desiredWindowHeight) {
+            ....
+      host.layout(0, 0, host.getMeasuredWidth(), host.getMeasuredHeight());
+            ....
+}
+```
+其中host 就是decorView,这个方法就是调用了View的layout方法
+```
+  public void layout(int l, int t, int r, int b) {
+      ...
+      onLayout(changed, l, t, r, b);
+      ...
+    }
+```
+layout 这个方法虽然也可以被子类重写，但是一般建议不重写layout方法 而是重写onLayout方法回调
+layout方法被ViewGroup重写了，但是被定义为final的，所有ViewGroup的子类都不可重写layout方法
+
 
 
 
