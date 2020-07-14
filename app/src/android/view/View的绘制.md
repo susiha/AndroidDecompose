@@ -379,6 +379,26 @@ private void performLayout(WindowManager.LayoutParams lp, int desiredWindowWidth
 layout 这个方法虽然也可以被子类重写，但是一般建议不重写layout方法 而是重写onLayout方法回调
 layout方法被ViewGroup重写了，但是被定义为final的，所有ViewGroup的子类都不可重写layout方法
 
+总结
+
+- 如果是ViewGroup 需要重写onLayout方法，并且在里面进行对子View进行layout的摆放
+- 如果是自定义View 则不需要重写onLayout方法
+
+##### performDraw
+测量是决定View的大小，layout是决定View位置，接下来就是绘制了
+从performDraw开始->view.draw()方法
+在view的draw方法中的绘制顺序是 
+- Draw the background 绘制背景
+- If necessary, save the canvas' layers to prepare for fading 保存图层
+- Draw view's content 绘制自身
+- Draw children 绘制子View
+- If necessary, draw the fading edges and restore layers 恢复图层
+- Draw decorations (scrollbars for instance) 绘制装饰
+
+
+
+
+
 
 
 
